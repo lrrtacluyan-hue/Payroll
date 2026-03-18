@@ -149,9 +149,9 @@ public class Payroll {
             double sss = 0, philhealth = 0, pagibig = 0, tax = 0;
             
             if (monthlyGross > 0) {
-                sss = monthlyGross * 0.045; // Simulated Standard SSS
+                sss = computeSSS(monthlyGross); // Simulated Standard SSS
                 philhealth = monthlyGross * 0.025; // Simulated PhilHealth (5% / 2)
-                pagibig = 100.0; // Flat standard HDMF
+                pagibig = 200.0; // Flat standard HDMF
                 tax = computeTax(monthlyGross, sss, philhealth, pagibig);
             }
             
@@ -178,6 +178,22 @@ public class Payroll {
     }
 
     // --- HELPER LOGIC ---
+    // Accurate SSS contribution base on employee bracket
+    public static double computeSSS(double monthlyGross){
+        if (monthlyGross< 5250.0){ 
+            return 250.0;}
+        else if (monthlyGross >= 34750.0) { 
+            return 1750.0;}
+        else{ 
+            
+            int mscMultiplier = (int) ((monthlyGross- 4750) / 500);
+            double msc = 5000 + (mscMultiplier * 500);
+            return msc * 0.05;
+            
+        }
+            
+            
+    }    
 
     // Standard simulated tax brackets
     public static double computeTax(double monthlyGross, double sss, double ph, double pagibig) {
