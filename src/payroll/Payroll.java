@@ -45,7 +45,7 @@ public class Payroll {
 
         if (!password.equals("12345") || (!username.equals("employee") && !username.equals("payroll_staff"))) {
             System.out.println("Incorrect username and/or password");
-            return; // Terminate program
+            System.exit(0); //Validate credentials. If incorrect, Terminate program immediately. 
         }
 
         // --- ROLE-BASED MENUS ---
