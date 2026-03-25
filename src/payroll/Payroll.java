@@ -364,10 +364,8 @@ public class Payroll {
                 int empIndex = findEmployeeIndex(EmployeeID);
                 if (empindex != -1){ // it storees the hours directly into the matrix for instant retrieval
                     dailyHoursMatrix[empIndex][currentMonth][currentDay] += totalPayableHours;
-                }
-                
-                // Keeping legacy arrays populated just in case raw data counting is needed 
-                attEmpIds
+                }            
+             
             }
         } catch (Exception e) {
             System.out.println("Error reading Attendance file.");
@@ -375,32 +373,42 @@ public class Payroll {
     }
 
     // Applies strict company attendance rules including Grace Periods and Lunch Deduction.
-    public static double computeDailyHours(String timeIn, String timeOut) {
-        String[] inParts = timeIn.split(":");
-        String[] outParts = timeOut.split(":");
+    public static double computeDailyHours(String timeInString, String timeOutString) {
+        String[] inTimeParts = timeInString.split(":");
+        String[] outTimeParts = timeOutString.split(":");
         
-        int inMins = (Integer.parseInt(inParts[0]) * 60) + Integer.parseInt(inParts[1]);
-        int outMins = (Integer.parseInt(outParts[0]) * 60) + Integer.parseInt(outParts[1]);
+        int timeInMinutes = (Integer.parseInt(inTimeParts[0]) * 60) + Integer.parseInt(intTimeParts[1]);
+        int timeOutMins = (Integer.parseInt(outTimeParts[0]) * 60) + Integer.parseInt(outTimeParts[1]);
 
         // Constraint: Grace period. If login is 8:10 or earlier, it counts as 8:00 AM (480 mins)
-        if (inMins <= 490) inMins = 480; 
+        if (timeInMinutes <= GRACE_PERIOD_END_MINUTES){
+            timeInMinutes = OFFICIAL_SHIFT_START_MINUTES;
+        } 
         
-        // Constraint: Cannot login before 8:00 AM.
-        if (inMins < 480) inMins = 480;
+        // Constraint: Employees cannot accrue overtime hours prior to the official 8:00 AM shift start. 
+        if (timeInMinutes < OFFICIAL_SHIFT_START_MINUTES){
+            timeInMinutes = OFFICIAL_SHIFT_START_MINUTES;
+        }
         
-        // Constraint: Cannot earn hours past 5:00 PM (1020 mins)
-        if (outMins > 1020) outMins = 1020;
-
-        int totalMins = outMins - inMins;
-
-        // Deduct 1 hour (60 mins) for lunch if they worked across the 12:00 PM - 1:00 PM window
-        if (inMins <= 720 && outMins >= 780) {
-            totalMins -= 60;
+        // Constraint: Employees cannot accrue overtime hours prior to the official 5:00 PM shift end. 
+        if (timeOutMinutes > OFFICIAL_SHIFT_END_MINUTES){
+            timeOutMinutes = OFFICIAL_SHIFT_END_MINUTES;
         }
 
-        double hours = totalMins / 60.0;
-        if (hours < 0) hours = 0;
+        int totalWorkedMinutes = timeOutMinutes - timeInMinutes;
 
-        return hours;
+        // Deduct 1 hour (60 mins) for lunch if they worked across the 12:00 PM - 1:00 PM window
+        if (timeInMinutes <= LUNCH_START_MINUTES && timeOutMinutes >= LUNCH_END_MINUTES) {
+            totalWorkedMinutes -= LUNCH_DURATION_MINUTES;
+        }
+       
+        double totalPayableHours = totalWorkedMinutes / 60.0;
+        
+        // Ensure that anomalies in punch data do not result in Negative work hours being process 
+        if (totalPayableHours < 0){
+            totalPayableHours = 0;
+        }
+
+        return totalPayableHours;
     }
 }
