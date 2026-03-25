@@ -13,6 +13,18 @@ import java.io.FileReader;
 import java.util.Scanner;
 
 public class Payroll {
+    
+    // Replacing Magic Number to Constants makes the code Easier to read and allows to update policies in one place. 
+    
+    static final int OFFICIAL_SHIFT_START_MINUTES = 480; // Represent 8:00 AM in total minutes from midnight. 
+    static final int GRACE_PERIOD_END_MINUTES = 490:    // Represent 8:10 AM in total minutes from midnight. 
+    static final int OFFICIAL_SHIFT_END_MINUTES = 1020: // Represent 5:00 PM in total minutes from midnight. 
+    static final int LUNCH_START_MINUTES = 720; // Represent 12:00 PM in total minutes from midnight. 
+    static final int LUNCH_END_MINUTES = 780;   // Represent 1:00 PM in total minutes from midnight. 
+    static final int LUNCH_DURATION_MINUTES = 60:  // Represent the standard 1 hour lunch break deduction. 
+    
+    static final double PAGIBIG_FLAT_DEDUCTION = 200.00;
+    static final double PHILHEALTH_CONTRIBUTION _RATE = 0.025;
 
     // --- PARALLEL ARRAYS FOR EMPLOYEE DATA (NO OOP) ---
     static int[] empIds = new int[35];
@@ -42,10 +54,10 @@ public class Payroll {
         String username = scanner.nextLine().trim();
         System.out.print("Password: ");
         String password = scanner.nextLine().trim();
-
+            //
         if (!password.equals("12345") || (!username.equals("employee") && !username.equals("payroll_staff"))) {
             System.out.println("Incorrect username and/or password");
-            System.exit(0); //Validate credentials. If incorrect, Terminate program immediately. 
+            System.exit(0); //Validate credentials. If incorrect, Immediately Terminate the program. 
         }
 
         // --- ROLE-BASED MENUS ---
@@ -68,9 +80,14 @@ public class Payroll {
                         System.out.println("\nEmployee Number: " + empIds[index]);
                         System.out.println("Employee Name: " + empNames[index]);
                         System.out.println("Birthday: " + empBirthdays[index]);
+                        System.out.println("\nExiting program per system requirements.");
+                        System.exit(0); // Will Exit after displaying the details 
                     }
                 } else if (choice.equals("2")) {
-                    break; // Exit program
+                    System.out.println("Terminating Program.");
+                    System.exit(0);// Exit program
+                } else {
+                    System.out.println ("Invalid Choice. Please select 1 or 2.");
                 }
             }
         } else if (username.equals("payroll_staff")) {
@@ -84,7 +101,10 @@ public class Payroll {
                 if (choice.equals("1")) {
                     processPayrollMenu(scanner);
                 } else if (choice.equals("2")) {
-                    break; // Exit program
+                    System.out.println("Terminating Program."); 
+                    System.exit(0);// Termination of Program after process of Bulk Payroll 
+                } else {
+                    System.out.println ("Invalid Choice. Please select 1 or 2.");
                 }
             }
         }
@@ -108,6 +128,9 @@ public class Payroll {
                     System.out.println("Employee number does not exist");
                 } else {
                     displayEmployeePayroll(index);
+                    System.out.println("\nPayroll processed. Exiting Program");
+                    System.exit(0);
+                    
                 }
             } else if (subChoice.equals("2")) {
                 for (int i = 0; i < empCount; i++) {
@@ -287,7 +310,7 @@ public class Payroll {
         }
     }
 
-    // Applies strictly rules 4a, 4b, 4c, and 4d
+    // Applies strict company attendance rules including Grace Periods and Lunch Deduction.
     public static double computeDailyHours(String timeIn, String timeOut) {
         String[] inParts = timeIn.split(":");
         String[] outParts = timeOut.split(":");
